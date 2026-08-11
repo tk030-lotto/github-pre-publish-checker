@@ -1,6 +1,6 @@
 import type { CheckReport } from '../types/index.js';
 
-export function printConsoleReport(report: CheckReport): void {
+export function printConsoleReport(report: CheckReport, largeFileThresholdBytes?: number): void {
   console.log('\n========================================');
   console.log('🔍 GitHub公開前チェック レポート');
   console.log('========================================\n');
@@ -25,7 +25,10 @@ export function printConsoleReport(report: CheckReport): void {
   }
 
   if (report.largeFilesFound.length > 0) {
-    console.log('\n--- 🐘 検出された大容量ファイル (> 10MB) ---');
+    const thresholdMB = largeFileThresholdBytes
+      ? (largeFileThresholdBytes / (1024 * 1024)).toFixed(0)
+      : '10';
+    console.log(`\n--- 🐘 検出された大容量ファイル (> ${thresholdMB}MB) ---`);
     for (const file of report.largeFilesFound) {
       const sizeMB = (file.sizeBytes / (1024 * 1024)).toFixed(2);
       console.log(`  - ${file.path} (${sizeMB} MB)`);

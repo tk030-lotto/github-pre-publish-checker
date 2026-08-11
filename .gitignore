@@ -1,0 +1,24 @@
+# 依存パッケージ
+node_modules/
+
+# ビルド成果物
+dist/
+
+# 開発内部ドキュメント（公開リポジトリに含めない）
+task.md
+audit_plan.md
+
+# ツール出力レポート（実行結果はコミットしない）
+CHECK_REPORT.md
+*.report.md
+
+# エディタ・OS固有ファイル
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+
+# 環境変数ファイル
+.env
+.env.*
+!.env.example

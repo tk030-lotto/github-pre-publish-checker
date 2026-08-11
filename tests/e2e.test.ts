@@ -11,7 +11,7 @@ describe('E2E CLI Integration Tests', () => {
   const outputReportPath = path.resolve('tests/fixtures/temp-report.md');
 
   it('should display help message when --help flag is used', () => {
-    const stdout = execSync(`npx tsx ${cliPath} --help`, { encoding: 'utf-8' });
+    const stdout = execSync(`npx tsx ${cliPath} --help`, { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024 });
     assert.match(stdout, /使用方法:/);
     assert.match(stdout, /--output/);
     assert.match(stdout, /--threshold/);
@@ -19,7 +19,7 @@ describe('E2E CLI Integration Tests', () => {
   });
 
   it('should analyze valid-repo and produce JSON output', () => {
-    const stdout = execSync(`npx tsx ${cliPath} ${validRepoPath} --json`, { encoding: 'utf-8' });
+    const stdout = execSync(`npx tsx ${cliPath} ${validRepoPath} --json`, { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024 });
     const result = JSON.parse(stdout);
     
     assert.strictEqual(typeof result.totalScore, 'number');
@@ -28,7 +28,7 @@ describe('E2E CLI Integration Tests', () => {
   });
 
   it('should analyze invalid-repo and detect violations in JSON output', () => {
-    const stdout = execSync(`npx tsx ${cliPath} ${invalidRepoPath} --json -t 1`, { encoding: 'utf-8' });
+    const stdout = execSync(`npx tsx ${cliPath} ${invalidRepoPath} --json -t 1`, { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024 });
     const result = JSON.parse(stdout);
 
     assert.strictEqual(typeof result.totalScore, 'number');
@@ -49,7 +49,7 @@ describe('E2E CLI Integration Tests', () => {
       fs.unlinkSync(outputReportPath);
     }
 
-    execSync(`npx tsx ${cliPath} ${validRepoPath} -o ${outputReportPath}`, { encoding: 'utf-8' });
+    execSync(`npx tsx ${cliPath} ${validRepoPath} -o ${outputReportPath}`, { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024 });
     assert.ok(fs.existsSync(outputReportPath), 'Report file should exist');
 
     const content = fs.readFileSync(outputReportPath, 'utf-8');

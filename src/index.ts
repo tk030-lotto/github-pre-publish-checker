@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { checkRequiredFiles } from './checkers/requiredFilesChecker.js';
 import { checkRecommendedFiles } from './checkers/recommendedFilesChecker.js';
 import { scanUnwantedAndLargeFiles } from './checkers/ignoredFilesChecker.js';
@@ -35,7 +36,8 @@ export function runChecker(options: CheckerOptions): CheckReport {
     totalScore -= Math.min(largeFiles.length * 10, 30);
   }
 
-  totalScore = Math.max(0, totalScore);
+  // スコアを 0〜100 に丸め込む（上限・下限保護）
+  totalScore = Math.max(0, Math.min(100, totalScore));
 
   const report: CheckReport = {
     targetPath: targetDir,
@@ -58,7 +60,22 @@ export function runChecker(options: CheckerOptions): CheckReport {
 }
 
 // CLI実行時（直接実行された場合）
-if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith('index.ts') || process.argv[1]?.endsWith('index.js')) {
+// CLI 直接実行判定 (ESM + Windows パス対応)
+function isDirectRun(): boolean {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    return path.resolve(__filename) === path.resolve(process.argv[1] ?? '');
+  } catch {
+    // フォールバック: ファイル名末尾で判定
+    return (
+      process.argv[1]?.endsWith('index.ts') ||
+      process.argv[1]?.endsWith('index.js') ||
+      false
+    );
+  }
+}
+
+if (isDirectRun()) {
   const cliOptions = parseCLIFlags();
 
   if (cliOptions.help) {
@@ -72,7 +89,7 @@ if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith
     if (cliOptions.jsonOutput) {
       console.log(JSON.stringify(report, null, 2));
     } else {
-      printConsoleReport(report);
+      printConsoleReport(report, cliOptions.largeFileThresholdBytes);
     }
 
     if (cliOptions.outputPath) {
