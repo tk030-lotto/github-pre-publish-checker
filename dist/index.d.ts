@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 type CheckStatus = 'OK' | 'WARNING' | 'CRITICAL' | 'MISSING';
 interface CheckItemResult {
     id: string;

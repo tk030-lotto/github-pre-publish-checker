@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import path from 'node:path';
 import { checkRequiredFiles } from './checkers/requiredFilesChecker.js';
 import { checkRecommendedFiles } from './checkers/recommendedFilesChecker.js';

@@ -1,0 +1,6 @@
+{
+  "name": "valid-dummy-repo",
+  "version": "1.0.0",
+  "description": "Dummy valid repo for testing",
+  "main": "src/index.ts"
+}

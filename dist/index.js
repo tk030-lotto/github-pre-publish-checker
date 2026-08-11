@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // src/index.ts
 import path5 from "path";
 
