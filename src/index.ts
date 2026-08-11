@@ -3,6 +3,8 @@ import { checkRequiredFiles } from './checkers/requiredFilesChecker.js';
 import { checkRecommendedFiles } from './checkers/recommendedFilesChecker.js';
 import { scanUnwantedAndLargeFiles } from './checkers/ignoredFilesChecker.js';
 import { printConsoleReport } from './reporter/consoleReporter.js';
+import { saveMarkdownReport } from './reporter/markdownReporter.js';
+import { parseCLIFlags, printHelp } from './cli/args.js';
 import type { CheckReport, CheckerOptions } from './types/index.js';
 
 export function runChecker(options: CheckerOptions): CheckReport {
@@ -54,12 +56,28 @@ export function runChecker(options: CheckerOptions): CheckReport {
   return report;
 }
 
-// CLI実行時
-const args = process.argv.slice(2);
-const targetPathArg = args[0] || '.';
+// CLI実行時（直接実行された場合）
+if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith('index.ts') || process.argv[1]?.endsWith('index.js')) {
+  const cliOptions = parseCLIFlags();
 
-const report = runChecker({
-  targetPath: targetPathArg
-});
+  if (cliOptions.help) {
+    printHelp();
+  } else {
+    const report = runChecker({
+      targetPath: cliOptions.targetPath,
+      largeFileThresholdBytes: cliOptions.largeFileThresholdBytes,
+    });
 
-printConsoleReport(report);
+    if (cliOptions.jsonOutput) {
+      console.log(JSON.stringify(report, null, 2));
+    } else {
+      printConsoleReport(report);
+    }
+
+    if (cliOptions.outputPath) {
+      saveMarkdownReport(report, cliOptions.outputPath);
+      console.log(`📝 Markdown レポートを保存しました: ${cliOptions.outputPath}\n`);
+    }
+  }
+}
+

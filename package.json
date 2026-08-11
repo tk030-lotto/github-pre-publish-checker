@@ -10,7 +10,8 @@
   "scripts": {
     "build": "npx tsup src/index.ts --format esm --dts",
     "dev": "npx tsx src/index.ts",
-    "check": "npx tsx src/index.ts ."
+    "check": "npx tsx src/index.ts .",
+    "test": "npx tsx --test tests/**/*.test.ts"
   },
   "keywords": [
     "github",
