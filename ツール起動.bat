@@ -1,16 +1,12 @@
 @echo off
-chcp 65001 >nul
-title GitHubŒöŠJ‘Oƒ`ƒFƒbƒJ[ (gh-check)
+chcp 65001 > nul
+title GitHubå…¬é–‹å‰ãƒã‚§ãƒƒã‚«ãƒ¼ Web
 
-echo ===================================================
-echo   GitHubŒöŠJ‘Oƒ`ƒFƒbƒJ[‚ğ‹N“®‚µ‚Ä‚¢‚Ü‚·...
-echo ===================================================
+echo ========================================================
+echo   ğŸ” GitHubå…¬é–‹å‰ãƒã‚§ãƒƒã‚«ãƒ¼ (Webç‰ˆ) ã‚’èµ·å‹•ã—ã¦ã„ã¾ã™...
+echo ========================================================
 echo.
-cd /d "%~dp0"
-if "%~1"=="" (
-    node dist/index.js . -o CHECK_REPORT.md
-) else (
-    node dist/index.js "%~1" -o CHECK_REPORT.md
-)
-echo.
+
+npm run dev
+
 pause
