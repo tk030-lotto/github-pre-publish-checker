@@ -9,8 +9,20 @@ import { generateMarkdownReport } from '../reporter/markdownReporter.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// 静的ファイルの公開ディレクトリ
-const PUBLIC_DIR = path.resolve(__dirname, 'public');
+// 静的ファイルの公開ディレクトリ (開発モード src/server/public と ビルド後 dist/ の両方に対応)
+function getPublicDir(): string {
+  const srcPublic = path.resolve(__dirname, 'public');
+  if (fs.existsSync(srcPublic)) {
+    return srcPublic;
+  }
+  const distPublic = path.resolve(__dirname, '..');
+  if (fs.existsSync(path.join(distPublic, 'index.html'))) {
+    return distPublic;
+  }
+  return srcPublic;
+}
+
+const PUBLIC_DIR = getPublicDir();
 
 export interface ServerOptions {
   port?: number;
@@ -222,8 +234,10 @@ if (isDirectRunServer()) {
 
   server.listen(PORT, () => {
     const url = `http://localhost:${PORT}`;
-    console.log(`\n🚀 GitHub公開前チェッカー Webサーバーが起動しました!`);
-    console.log(`🌐 URL: ${url}\n`);
+    console.log(`\n========================================================`);
+    console.log(`[SERVER] GitHub公開前チェッカー Webサーバーが起動しました!`);
+    console.log(`[URL]    ${url}`);
+    console.log(`========================================================\n`);
     openBrowserInOS(url);
   });
 }

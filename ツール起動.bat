@@ -1,9 +1,9 @@
 @echo off
 chcp 65001 > nul
-title GitHub公開前チェッカー Web
+title GitHub Pre-Publish Checker Web
 
 echo ========================================================
-echo   🔍 GitHub公開前チェッカー (Web版) を起動しています...
+echo   GitHub Pre-Publish Checker (Web) Starting...
 echo ========================================================
 echo.
 

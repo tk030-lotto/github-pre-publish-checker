@@ -11,7 +11,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "npx tsup src/index.ts src/server/index.ts --format esm --dts && node scripts/copy-assets.js",
+    "build": "npx tsup",
     "start": "node dist/server/index.js",
     "dev": "npx tsx src/server/index.ts",
     "check": "npx tsx src/index.ts .",
