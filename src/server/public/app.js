@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     li.innerHTML = `
       <div class="check-item-header">
-        <span class="check-item-name">${icon} ${escapeHtml(item.name)}</span>
+        <span class="check-item-name font-mono">${icon} ${escapeHtml(item.name)}</span>
         <span class="check-item-badge ${badgeClass}">${statusText}</span>
       </div>
       <div class="check-item-desc">${escapeHtml(item.message)}</div>
