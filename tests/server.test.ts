@@ -107,4 +107,14 @@ describe('Web Server API Integration Tests', () => {
     const markdownText = await reportRes.text();
     assert.ok(markdownText.includes('# 🔍 GitHub 公開前チェック レポート'));
   });
+
+  it('GET directory traversal should be blocked with 403', async () => {
+    // パストラバーサル攻撃のテスト (../ による親ディレクトリアクセス)
+    const res = await fetch(`${baseUrl}/..%2Fpackage.json`);
+    // 403 Forbidden または 404 Not Found で拒否されること
+    assert.ok(res.status === 403 || res.status === 404, `Expected 403 or 404, got ${res.status}`);
+    const body = await res.text();
+    // 少なくとも package.json の内容が漏洩していないこと
+    assert.ok(!body.includes('"name"'), 'package.json content should not be accessible');
+  });
 });

@@ -27,7 +27,13 @@ export function scanUnwantedAndLargeFiles(
   const largeFiles: { path: string; sizeBytes: number }[] = [];
 
   function scan(dirPath: string) {
-    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+    let entries;
+    try {
+      entries = fs.readdirSync(dirPath, { withFileTypes: true });
+    } catch {
+      // 権限エラーやアクセス不可ディレクトリは安全にスキップ
+      return;
+    }
 
     for (const entry of entries) {
       const fullPath = path.join(dirPath, entry.name);

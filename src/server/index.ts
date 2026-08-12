@@ -62,8 +62,11 @@ export function createServer(options: ServerOptions = {}): http.Server {
     const reqUrl = new URL(req.url ?? '/', `http://localhost:${port}`);
     const pathname = reqUrl.pathname;
 
-    // CORSヘッダー (ローカルアクセス保護)
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    // CORSヘッダー (localhost 限定。外部オリジンからの呼び出しを拒否)
+    const origin = req.headers.origin ?? '';
+    if (!origin || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
+      res.setHeader('Access-Control-Allow-Origin', origin || `http://localhost:${port}`);
+    }
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
@@ -76,7 +79,16 @@ export function createServer(options: ServerOptions = {}): http.Server {
     // API エンドポイント: チェック実行
     if (req.method === 'POST' && pathname === '/api/check') {
       let body = '';
+      let bodySize = 0;
+      const BODY_LIMIT = 1 * 1024 * 1024; // 1MB 上限
       req.on('data', (chunk) => {
+        bodySize += chunk.length;
+        if (bodySize > BODY_LIMIT) {
+          res.writeHead(413, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ success: false, error: 'リクエストボディが大きすぎます。' }));
+          req.destroy();
+          return;
+        }
         body += chunk;
       });
       req.on('end', () => {
@@ -135,7 +147,16 @@ export function createServer(options: ServerOptions = {}): http.Server {
     // API エンドポイント: Markdown レポート生成
     if (req.method === 'POST' && pathname === '/api/report') {
       let body = '';
+      let bodySize = 0;
+      const BODY_LIMIT = 2 * 1024 * 1024; // 2MB 上限 (レポートデータ分)
       req.on('data', (chunk) => {
+        bodySize += chunk.length;
+        if (bodySize > BODY_LIMIT) {
+          res.writeHead(413, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ success: false, error: 'リクエストボディが大きすぎます。' }));
+          req.destroy();
+          return;
+        }
         body += chunk;
       });
       req.on('end', () => {
@@ -164,10 +185,12 @@ export function createServer(options: ServerOptions = {}): http.Server {
     // 静的ファイル配信 (GET)
     if (req.method === 'GET') {
       let relativePath = pathname === '/' ? 'index.html' : pathname.replace(/^\//, '');
-      const filePath = path.join(PUBLIC_DIR, relativePath);
+      // path.resolve で正規化して Directory Traversal を確実に防ぐ
+      const filePath = path.resolve(PUBLIC_DIR, relativePath);
+      const resolvedPublicDir = path.resolve(PUBLIC_DIR);
 
-      // Directory Traversal 対策
-      if (!filePath.startsWith(PUBLIC_DIR)) {
+      // Directory Traversal 対策 (正規化済みパスで比較)
+      if (!filePath.startsWith(resolvedPublicDir + path.sep) && filePath !== resolvedPublicDir) {
         res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
         res.end('403 Forbidden');
         return;
@@ -211,7 +234,7 @@ export function openBrowserInOS(url: string): void {
 
   exec(command, (err) => {
     if (err) {
-      console.log(`💡 ブラウザを自動で開けませんでした。ブラウザで ${url} にアクセスしてください。`);
+      console.log(`[INFO] ブラウザを自動で開けませんでした。ブラウザで ${url} にアクセスしてください。`);
     }
   });
 }
