@@ -15,7 +15,8 @@
     "start": "node dist/server/index.js",
     "dev": "npx tsx src/server/index.ts",
     "check": "npx tsx src/index.ts .",
-    "test": "npx tsx --test tests/checkers.test.ts tests/e2e.test.ts tests/reporter.test.ts tests/server.test.ts"
+    "test": "npx tsx --test tests/checkers.test.ts tests/e2e.test.ts tests/reporter.test.ts tests/server.test.ts",
+    "deploy": "gh-pages -d docs"
   },
   "keywords": [
     "github",
@@ -29,6 +30,7 @@
     "@types/node": "^20.11.0",
     "tsup": "^8.0.1",
     "tsx": "^4.7.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "gh-pages": "^6.1.1"
   }
 }
