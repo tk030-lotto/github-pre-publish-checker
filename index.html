@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub公開前チェッカー</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- ヘッダー -->
+    <header class="app-header">
+      <div class="header-main">
+        <div class="header-badge">CHECKER</div>
+        <h1>GitHub公開前チェッカー</h1>
+      </div>
+      <p class="header-desc">GitHubへ公開する前にプロジェクトの品質・セキュリティをブラウザまたはローカル環境で自動診断します</p>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="app-main">
+      <!-- ドロップゾーン & 入力エリア -->
+      <section class="card input-section">
+        <div class="card-header">
+          <h2>📂 チェック対象プロジェクト</h2>
+          <span class="badge" id="runtimeBadge">WEB SAFE SCAN</span>
+        </div>
+
+        <!-- ドラッグ＆ドロップゾーン -->
+        <div id="dropZone" class="drop-zone">
+          <div class="drop-zone-content">
+            <span class="drop-icon">📁</span>
+            <p class="drop-title">プロジェクトフォルダをここにドラッグ＆ドロップ</p>
+            <p class="drop-sub">または下のボタンからフォルダを選択（ブラウザ内で100%安全にスキャン・外部通信なし）</p>
+            <label class="btn btn-primary file-select-label">
+              <span>フォルダを選択</span>
+              <input type="file" id="folderInput" webkitdirectory directory multiple class="hidden-input">
+            </label>
+          </div>
+        </div>
+
+        <!-- 閾値設定とパス入力 (折りたたみ) -->
+        <form id="checkForm" class="check-form">
+          <div class="form-row" style="margin-top: 16px;">
+            <div class="form-group threshold-group">
+              <label for="largeFileThreshold">大容量ファイル判定閾値 (MB)</label>
+              <input type="number" id="largeFileThreshold" class="font-mono" value="10" min="1" max="1000" required>
+            </div>
+            <div class="form-group submit-group" id="pathSubmitGroup" style="display: none;">
+              <button type="submit" id="startBtn" class="btn btn-primary">
+                <span class="btn-icon">🔍</span> パスからチェック開始
+              </button>
+            </div>
+          </div>
+
+          <!-- パス直接入力オプション (ローカルサーバー時用) -->
+          <div id="pathInputSection" style="margin-top: 12px; display: none;">
+            <label for="targetPath" style="font-size: 12px; color: var(--text-secondary);">または ローカルパスを直接指定</label>
+            <input type="text" id="targetPath" class="font-mono" placeholder="例: C:\Projects\my-project または ." autocomplete="off">
+          </div>
+        </form>
+      </section>
+
+      <!-- ローディング表示 -->
+      <section id="loadingSection" class="card loading-section hidden">
+        <div class="spinner"></div>
+        <h3>プロジェクトをスキャンしています...</h3>
+        <p id="loadingStatusText" class="help-text">ファイル構造およびセキュリティリスクを検査しています</p>
+        <div class="progress-bar-container">
+          <div id="progressBar" class="progress-bar"></div>
+        </div>
+      </section>
+
+      <!-- エラー表示 -->
+      <section id="errorSection" class="card error-section hidden">
+        <div class="error-header">
+          <span class="error-icon">⚠️</span>
+          <h3 id="errorTitle">エラーが発生しました</h3>
+        </div>
+        <p id="errorMessage" class="error-message font-mono"></p>
+      </section>
+
+      <!-- 結果画面エリア -->
+      <div id="resultsWrapper" class="results-wrapper hidden">
+        <!-- スコア・概要カード -->
+        <section class="card score-card">
+          <div class="score-main">
+            <div class="score-label">総合評価スコア</div>
+            <div class="score-display">
+              <span id="totalScore" class="score-number font-mono">--</span>
+              <span class="score-max font-mono">/ 100</span>
+            </div>
+            <div id="scoreBadge" class="score-badge status-good">🟢 良好</div>
+          </div>
+          <div class="score-summary">
+            <div class="summary-item">
+              <span class="summary-label">必須ファイル</span>
+              <span id="sumRequired" class="summary-val font-mono">0 / 4</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">推奨ファイル</span>
+              <span id="sumRecommended" class="summary-val font-mono">0 / 3</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">不要・機密ファイル</span>
+              <span id="sumUnwanted" class="summary-val font-mono">0件</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">大容量ファイル</span>
+              <span id="sumLarge" class="summary-val font-mono">0件</span>
+            </div>
+          </div>
+          <div class="action-bar">
+            <button id="downloadReportBtn" class="btn">
+              <span class="btn-icon">📝</span> Markdownレポート保存
+            </button>
+          </div>
+        </section>
+
+        <!-- カテゴリ別チェック詳細 -->
+        <div class="details-grid">
+          <!-- 必須ファイル -->
+          <section class="card category-card">
+            <h3>📋 必須ファイル</h3>
+            <ul id="requiredList" class="check-list"></ul>
+          </section>
+
+          <!-- 推奨ファイル -->
+          <section class="card category-card">
+            <h3>📚 推奨ファイル</h3>
+            <ul id="recommendedList" class="check-list"></ul>
+          </section>
+
+          <!-- 不要・機密ファイル -->
+          <section class="card category-card">
+            <h3>⚠️ 不要・機密ファイル / フォルダ</h3>
+            <div id="unwantedContainer"></div>
+          </section>
+
+          <!-- 大容量ファイル -->
+          <section class="card category-card">
+            <h3>🐘 大容量ファイル</h3>
+            <div id="largeFilesContainer"></div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <!-- フッター -->
+    <footer class="app-footer">
+      <div class="footer-content">
+        <p class="footer-copyright">GitHub公開前チェッカー Web v1.0.0</p>
+        <p class="footer-security">🔒 ZERO-EXTERNAL COMMUNICATION | 100% CLIENT-SIDE SAFE</p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
