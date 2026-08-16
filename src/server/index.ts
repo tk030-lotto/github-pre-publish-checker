@@ -76,6 +76,13 @@ export function createServer(options: ServerOptions = {}): http.Server {
       return;
     }
 
+    // API エンドポイント: ヘルスチェック
+    if (req.method === 'GET' && pathname === '/api/health') {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ status: 'ok', local: true }));
+      return;
+    }
+
     // API エンドポイント: チェック実行
     if (req.method === 'POST' && pathname === '/api/check') {
       let body = '';
@@ -95,7 +102,7 @@ export function createServer(options: ServerOptions = {}): http.Server {
         try {
           const payload = JSON.parse(body || '{}');
           const targetPath = payload.targetPath;
-          const thresholdMB = Number(payload.thresholdMB) || 10;
+          const thresholdMB = Number(payload.thresholdMB || payload.largeFileThresholdMB) || 10;
           const largeFileThresholdBytes = thresholdMB * 1024 * 1024;
 
           if (!targetPath || typeof targetPath !== 'string') {

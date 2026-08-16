@@ -345,6 +345,51 @@ document.addEventListener('DOMContentLoaded', () => {
     return md;
   }
 
+  // サーバーの CheckReport オブジェクトを Web UI 表示用フォーマットに変換
+  function adaptCheckReportToViewData(report, thresholdMB) {
+    const required = (report.items || []).filter(i => i.category === 'REQUIRED');
+    const recommended = (report.items || []).filter(i => i.category === 'RECOMMENDED');
+    const unwantedFiles = report.unwantedFilesFound || [];
+    const largeFiles = report.largeFilesFound || [];
+
+    let overallRating = '良好 (Good)';
+    let overallRatingCode = 'GOOD';
+    if (report.totalScore < 70) {
+      overallRating = '要修正 (Critical)';
+      overallRatingCode = 'CRITICAL';
+    } else if (report.totalScore < 90) {
+      overallRating = '注意 (Warning)';
+      overallRatingCode = 'WARNING';
+    }
+
+    const md = generateMarkdownReport({
+      totalScore: report.totalScore,
+      overallRating,
+      required,
+      recommended,
+      unwantedFiles,
+      largeFiles,
+      largeFileThresholdMB: thresholdMB || 10
+    });
+
+    return {
+      totalScore: report.totalScore,
+      overallRating,
+      overallRatingCode,
+      categoryScores: {
+        required: { score: 100 + required.reduce((acc, r) => acc + (r.scoreImpact || 0), 0), max: 100 },
+        recommended: { score: 100 + recommended.reduce((acc, r) => acc + (r.scoreImpact || 0), 0), max: 100 }
+      },
+      details: {
+        required,
+        recommended,
+        unwantedFiles,
+        largeFiles
+      },
+      markdownReport: md
+    };
+  }
+
   // フォーム送信（ローカルAPIが利用可能な場合のパススキャン）
   checkForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -358,24 +403,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     showLoading();
     try {
+      const thresholdMB = parseInt(largeFileThresholdInput.value, 10) || 10;
       const response = await fetch('/api/check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           targetPath,
-          largeFileThresholdMB: parseInt(largeFileThresholdInput.value, 10) || 10
+          largeFileThresholdMB: thresholdMB
         })
       });
 
       const data = await response.json();
       hideLoading();
 
-      if (!response.ok) {
-        showError(data.error?.code || 'CHECK_ERROR', data.error?.message || '診断に失敗しました');
+      if (!response.ok || !data.success) {
+        const errMsg = typeof data.error === 'string' ? data.error : (data.error?.message || '診断に失敗しました');
+        showError('CHECK_ERROR', errMsg);
         return;
       }
 
-      renderResults(data.data);
+      const viewData = adaptCheckReportToViewData(data.report, thresholdMB);
+      renderResults(viewData);
     } catch (err) {
       hideLoading();
       showError('FETCH_ERROR', err.message || 'サーバーとの通信に失敗しました');

@@ -34,6 +34,14 @@ describe('Web Server API Integration Tests', () => {
     assert.ok(html.includes('GitHub公開前チェッカー'));
   });
 
+  it('GET /api/health should return ok status 200', async () => {
+    const res = await fetch(`${baseUrl}/api/health`);
+    assert.strictEqual(res.status, 200);
+    const data = await res.json();
+    assert.strictEqual(data.status, 'ok');
+    assert.strictEqual(data.local, true);
+  });
+
   it('POST /api/check should analyze valid-repo successfully', async () => {
     const res = await fetch(`${baseUrl}/api/check`, {
       method: 'POST',
@@ -52,13 +60,13 @@ describe('Web Server API Integration Tests', () => {
     assert.strictEqual(data.report.unwantedFilesFound.length, 0);
   });
 
-  it('POST /api/check should detect issues in invalid-repo', async () => {
+  it('POST /api/check should detect issues in invalid-repo with largeFileThresholdMB parameter', async () => {
     const res = await fetch(`${baseUrl}/api/check`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         targetPath: invalidRepoPath,
-        thresholdMB: 0.001 // 超小容量閾値 (1KB) でテスト
+        largeFileThresholdMB: 0.001 // 超小容量閾値 (1KB) でテスト
       })
     });
 

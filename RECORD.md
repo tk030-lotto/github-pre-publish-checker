@@ -1,5 +1,27 @@
 # 📜 開発記録 (RECORD.md) - GitHub公開前チェッカー
 
+## 📅 2026-08-16: Web UI / サーバー連携不具合およびデータ構造不整合の修正完了
+
+### 1. 実施内容
+- **[SERVER] ヘルスチェックエンドポイント追加 & パラメータ互換性確保**:
+  - `src/server/index.ts` に `GET /api/health` を追加し、Web UI 初期化時の接続判定が正常に応答するよう修正。
+  - `POST /api/check` で `thresholdMB` と `largeFileThresholdMB` の両方のキーを受け入れ可能に修正。
+- **[WEB UI] CheckReport データ構造の適合・マッピングアダプター実装**:
+  - `src/server/public/app.js` に `adaptCheckReportToViewData` を導入し、サーバーの `CheckReport` オブジェクトを安全に画面表示用構造へ正規化。
+  - フォーム送信時の API レスポンス取得 (`data.report`) およびエラーハンドリングを強化。
+- **[TESTS] 統合テストケースの追加**:
+  - `tests/server.test.ts` に `GET /api/health` 疎通テストおよび `largeFileThresholdMB` パラメータによる診断テストを追加。
+
+### 2. 自律検証結果
+- **自動テスト全件通過 (`npm test`)**: 19 / 19 件 全件合格 (`pass 19, fail 0`)
+  - Checkers Unit Tests: 4件 OK
+  - E2E CLI Integration Tests: 4件 OK
+  - Reporter & CLI Args Unit Tests: 4件 OK
+  - Web Server API Integration Tests: 7件 OK
+- **ビルド完了 (`npm run build`)**: `tsup` ESM バンドル生成・DTS生成・静的アセット (`index.html`, `style.css`, `app.js`) の同期完了
+
+---
+
 ## 📅 2026-08-12: UIデザイン規格化 (プロジェクト統計ツール準拠) 完了
 
 ### 1. 実施内容
