@@ -1,5 +1,20 @@
 # 📜 開発記録 (RECORD.md) - GitHub公開前チェッカー
 
+## 📅 2026-08-16: GitHubリポジトリ公開 (Public化) & GitHub Pages デプロイ完了
+
+### 1. 実施内容
+- **[RELEASE] GitHubリポジトリのパブリック化**:
+  - GitHub CLI (`gh repo edit --visibility public`) によりリポジトリを公開設定に変更完了。
+  - 公開リポジトリ: `https://github.com/tk030-lotto/github-pre-publish-checker`
+- **[DEPLOY] GitHub Pages デプロイ & Web UI 公開**:
+  - `src/server/public/` の最新 Web UI アセット（`app.js`, `index.html`, `style.css`）を `docs/` に同期。
+  - `gh-pages` ブランチにビルドアセットをパブリッシュし、GitHub Pages サイトを公開。
+  - 公開URL: `https://tk030-lotto.github.io/github-pre-publish-checker/`
+- **[VERIFY] 自律検証**:
+  - `npm test`（19/19件パス）、`npm run build` 正常完了を確認。
+
+---
+
 ## 📅 2026-08-16: Web UI / サーバー連携不具合およびデータ構造不整合の修正完了
 
 ### 1. 実施内容
