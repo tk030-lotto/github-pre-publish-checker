@@ -22,3 +22,15 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+
+# Internal operational files (Common Rules)
+AI_RULES.md
+SKILLS.md
+.cursorrules
+.clauderules
+.clinerules
+.github/copilot-instructions.md
+.agents/
+knowledge/
+RECORD.md
+
