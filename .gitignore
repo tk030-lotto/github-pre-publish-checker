@@ -52,3 +52,7 @@ SCHEDULE.md
 
 # 仕様書除外（フェーズ2-C-β）
 SPECIFICATION*.md
+
+# 設計書・開発ガイド除外（フェーズ2-C-γ）
+ARCHITECTURE*.md
+DATA_MODEL*.md
